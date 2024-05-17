@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.devsuperior.bds.dto.ReviewDTO;
 import com.devsuperior.bds.entities.Review;
 import com.devsuperior.bds.repositories.ReviewRepository;
-import com.devsuperior.bds.repositories.UserRepository;
 import com.devsuperior.bds.services.exceptions.DataBaseException;
 import com.devsuperior.bds.services.exceptions.ResourceNotFoundException;
 
@@ -23,9 +22,6 @@ public class ReviewService {
 
 	@Autowired
 	private ReviewRepository reviewRepository;
-	
-	@Autowired
-	private UserRepository userRepository;
 	
 	@Transactional(readOnly = true)
 	public List<ReviewDTO> findAll() {
@@ -43,7 +39,7 @@ public class ReviewService {
 		
 		Review entity = obj.orElseThrow(() -> new ResourceNotFoundException("Id not found"));
 		
-		return new ReviewDTO(entity);
+		return new ReviewDTO(entity, entity.getUser().getId(), entity.getMovie().getId());
 		}
 		
 	@Transactional(readOnly = true)
@@ -60,7 +56,7 @@ public class ReviewService {
 		Review entity = new Review();
 		copyDtoToEntity(entity, dto);
 		reviewRepository.save(entity);
-		return new ReviewDTO(entity);
+		return new ReviewDTO(entity, entity.getUser().getId(), entity.getMovie().getId());
 	}
 	
 	@Transactional
@@ -70,7 +66,7 @@ public class ReviewService {
 		Review entity = reviewRepository.getOne(id);
 		copyDtoToEntity(entity, dto);
 		reviewRepository.save(entity);
-		return new ReviewDTO(entity);
+		return new ReviewDTO(entity, entity.getUser().getId(), entity.getMovie().getId());
 	}catch(EntityNotFoundException e) {
 		throw new ResourceNotFoundException("Id not found");
 	}
@@ -88,9 +84,10 @@ public class ReviewService {
 }
 	
 	public void copyDtoToEntity(Review review, ReviewDTO dto) {
-
+		
+		review.setId(dto.getId());
 		review.setText(dto.getText());
-		dto.setUserId(review.getUser().getId());
-		dto.setMovieId(review.getMovie().getId());
+		review.getUser().setId(dto.getUserId());
+		review.getMovie().setId(dto.getMovieId());
 	}
 }
